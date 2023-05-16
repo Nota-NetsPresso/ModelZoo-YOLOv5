@@ -6,7 +6,7 @@
 
 </div>
 
-# <div align="center">NetsPresso Tutorial for YOLOv5 Compressrion</div>
+# <div align="center">NetsPresso Tutorial for YOLOv5 Compression</div>
 ## Order of the tutorial
 [1. Install](#1-install) </br>
 [2. Training](#2-training) </br>
@@ -16,9 +16,9 @@
 </br>
 
 ## 1. Install
-Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a
+Clone repo and install [requirements.txt](https://github.com/Nota-NetsPresso/yolov5_nota/blob/master/requirements.txt) in a
 [**Python>=3.7.0**](https://www.python.org/) environment, including
-[**PyTorch>=1.7**](https://pytorch.org/get-started/locally/).
+[**PyTorch==1.11**](https://pytorch.org/get-started/locally/).
 
 ```bash
 git clone https://github.com/Nota-NetsPresso/yolov5_nota.git  # clone
@@ -50,7 +50,10 @@ Upload & compress your 'model_torchfx.pt' by using NetsPresso Model Compressor m
 ## 5. Fine-tuning the compressed Model</br>
 Place the compressed model in the same place as the files obtained in Step 3('model_torchfx.pt', 'model_head.pt'). Change the compressed model name to 'model_compressed.pt'.
 ```bash
-python train.py --data coco.yaml --epochs 300 --weights model_compressed.pt --batch-size 128 --netspresso
+#Single GPU
+python train.py --data coco.yaml --epochs 300 --weights model_compressed.pt --batch-size 128 --device 0 --netspresso
+#Multi GPU
+python -m torch.distributed.run --nproc_per_node 2 train.py --batch 64 --data coco.yaml --weights model_compressed.pt --device 0,1 --netspresso
 ```
 
 Now you can use the compressed model however you like! </br></br>
