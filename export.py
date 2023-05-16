@@ -159,10 +159,19 @@ def export_netspresso(model, file, prefix=colorstr('NetsPresso:')):
     f = str(file).replace('.pt', f'_torchfx.pt')
     
     #save model_torchfx.pt
-    model.train()
-    _graph = fx.Tracer().trace(model, {'augment': False, 'profile':False, 'visualize':False})
-    traced_model = fx.GraphModule(model, _graph)
-    torch.save(traced_model, f)
+    if isinstance(model, torch.nn.Sequential):
+        model[-1].export = False
+        model_head = model[-1]
+        model = model[0]
+
+        torch.save(model, f)
+    else:
+        model.model[-1].export = False
+        model_head = model.model[-1]
+
+        _graph = fx.Tracer().trace(model, {'augment': False, 'profile':False, 'visualize':False})
+        traced_model = fx.GraphModule(model, _graph)
+        torch.save(traced_model, f)
     
     f = str(file).replace('.pt', f'_head.pt')
     
