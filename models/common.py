@@ -639,7 +639,10 @@ class AutoShape(nn.Module):
         self.pt = not self.dmb or model.pt  # PyTorch model
         self.model = model.eval()
         if self.pt:
-            m = self.model.model.model[-1] if self.dmb else self.model.model[-1]  # Detect()
+            if isinstance(self.model, torch.nn.Sequential):
+                m = self.model.model[-1] if self.dmb else self.model[-1]
+            else:
+                m = self.model.model.model[-1] if self.dmb else self.model.model[-1]  # Detect()
             m.inplace = False  # Detect.inplace=False for safe multithread inference
             m.export = True  # do not output loss values
 
@@ -647,7 +650,10 @@ class AutoShape(nn.Module):
         # Apply to(), cpu(), cuda(), half() to model tensors that are not parameters or registered buffers
         self = super()._apply(fn)
         if self.pt:
-            m = self.model.model.model[-1] if self.dmb else self.model.model[-1]  # Detect()
+            if isinstance(self.model, torch.nn.Sequential):
+                m = self.model.model[-1] if self.dmb else self.model[-1]
+            else:
+                m = self.model.model.model[-1] if self.dmb else self.model.model[-1]  # Detect()
             m.stride = fn(m.stride)
             m.grid = list(map(fn, m.grid))
             if isinstance(m.anchor_grid, list):
@@ -702,7 +708,10 @@ class AutoShape(nn.Module):
         with amp.autocast(autocast):
             # Inference
             with dt[1]:
-                y = self.model(x, augment=augment)  # forward
+                if isinstance(self.model, torch.nn.Sequential):
+                    y = self.model(x) # forward for NetsPresso
+                else:
+                    y = self.model(x, augment=augment)  # forward
 
             # Post-process
             with dt[2]:
@@ -715,6 +724,8 @@ class AutoShape(nn.Module):
                                         max_det=self.max_det)  # NMS
                 for i in range(n):
                     scale_boxes(shape1, y[i][:, :4], shape0[i])
+                    
+            self.names = self.names if hasattr(self.model, 'names') else None
 
             return Detections(ims, y, files, dt, self.names, x.shape)
 
