@@ -95,7 +95,7 @@ compressed_model = compressor.recommendation_compression(
 ```
 
 <details>
-<summary>Click to check 'Full Upload&Compress Code'</summary>
+<summary>Click to check 'Full Upload & Compress Code'</summary>
 
 ```bash
 pip install netspresso
