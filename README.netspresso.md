@@ -11,14 +11,14 @@
 [1. Install](#1-install) </br>
 [2. Training](#2-training) </br>
 [3. Convert YOLOv5 to _torchfx.pt](#3-convert-yolov5-to-_torchfxpt) </br>
-[4. Model Compression with NetsPresso](#4-model-compression-with-netspresso)</br>
+[4. Model Compression with NetsPresso Python Package](#4-model-compression-with-netspresso-python-package)</br>
 [5. Fine-tuning the compressed Model](#5-fine-tuning-the-compressed-model)</br>
 </br>
 
 ## 1. Install
 Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a
 [**Python>=3.7.0**](https://www.python.org/) environment, including
-[**PyTorch>=1.7**](https://pytorch.org/get-started/locally/).
+[**PyTorch>=1.11**](https://pytorch.org/get-started/locally/).
 
 ```bash
 git clone https://github.com/Nota-NetsPresso/yolov5_nota.git  # clone
@@ -44,13 +44,115 @@ python export.py --weights yolov5s.pt --include netspresso
 ```
 Executing this code will create 'model_torchfx.pt' and 'model_head.pt'.<br/><br/>
 
-## 4. Model Compression with NetsPresso<br/>
-Upload & compress your 'model_torchfx.pt' by using NetsPresso Model Compressor module here: https://console.netspresso.ai/models<br/><br/>
+## 4. Model Compression with NetsPresso Python Package<br/>
+Upload & compress your 'model_torchfx.pt' by using NetsPresso Python Package
+### 4_1. Install NetsPresso Python Package
+```bash
+pip install netspresso
+```
+### 4_2. Upload & Compress
+First, import the packages and set a NetsPresso username and password.
+```python
+from netspresso.compressor import ModelCompressor, Task, Framework, CompressionMethod, RecommendationMethod
+
+
+EMAIL = "YOUR_EMAIL"
+PASSWORD = "YOUR_PASSWORD"
+compressor = ModelCompressor(email=EMAIL, password=PASSWORD)
+```
+Second, upload 'model_torchfx.pt', which is the model converted to torchfx in step 3, with the following code.
+```python
+# Upload Model
+UPLOAD_MODEL_NAME = "yolov5_model"
+TASK = Task.OBJECT_DETECTION
+FRAMEWORK = Framework.PYTORCH
+UPLOAD_MODEL_PATH = "./model_torchfx.pt"
+INPUT_LAYERS = [{"batch": 1, "channel": 3, "dimension": [640, 640]}]
+model = compressor.upload_model(
+    model_name=UPLOAD_MODEL_NAME,
+    task=TASK,
+    framework=FRAMEWORK,
+    file_path=UPLOAD_MODEL_PATH,
+    input_layers=INPUT_LAYERS,
+)
+```
+Finally, you can compress the uploaded model with the desired options through the following code.
+```python
+# Recommendation Compression
+COMPRESSED_MODEL_NAME = "test_l2norm"
+COMPRESSION_METHOD = CompressionMethod.PR_L2
+RECOMMENDATION_METHOD = RecommendationMethod.LAMP
+RECOMMENDATION_RATIO = 0.6
+OUTPUT_PATH = "./compressed_yolov5.pt"
+compressed_model = compressor.recommendation_compression(
+    model_id=model.model_id,
+    model_name=COMPRESSED_MODEL_NAME,
+    compression_method=COMPRESSION_METHOD,
+    recommendation_method=RECOMMENDATION_METHOD,
+    recommendation_ratio=RECOMMENDATION_RATIO,
+    output_path=OUTPUT_PATH,
+)
+```
+
+<details>
+<summary>Click to check 'Full Upload&Compress Code'</summary>
+
+```bash
+pip install netspresso
+```
+
+```python
+from netspresso.compressor import ModelCompressor, Task, Framework, CompressionMethod, RecommendationMethod
+
+
+EMAIL = "YOUR_EMAIL"
+PASSWORD = "YOUR_PASSWORD"
+compressor = ModelCompressor(email=EMAIL, password=PASSWORD)
+
+# Upload Model
+UPLOAD_MODEL_NAME = "yolov5_model"
+TASK = Task.OBJECT_DETECTION
+FRAMEWORK = Framework.PYTORCH
+UPLOAD_MODEL_PATH = "./model_torchfx.pt"
+INPUT_LAYERS = [{"batch": 1, "channel": 3, "dimension": [640, 640]}]
+model = compressor.upload_model(
+    model_name=UPLOAD_MODEL_NAME,
+    task=TASK,
+    framework=FRAMEWORK,
+    file_path=UPLOAD_MODEL_PATH,
+    input_layers=INPUT_LAYERS,
+)
+
+# Recommendation Compression
+COMPRESSED_MODEL_NAME = "test_l2norm"
+COMPRESSION_METHOD = CompressionMethod.PR_L2
+RECOMMENDATION_METHOD = RecommendationMethod.LAMP
+RECOMMENDATION_RATIO = 0.6
+OUTPUT_PATH = "./compressed_yolov5.pt"
+compressed_model = compressor.recommendation_compression(
+    model_id=model.model_id,
+    model_name=COMPRESSED_MODEL_NAME,
+    compression_method=COMPRESSION_METHOD,
+    recommendation_method=RECOMMENDATION_METHOD,
+    recommendation_ratio=RECOMMENDATION_RATIO,
+    output_path=OUTPUT_PATH,
+)
+```
+
+</details>
+
+More commands can be found in the official NetsPresso Python Package Docs: https://nota-github.github.io/netspresso-python/build/html/index.html <br/>
+
+Alternatively, you can do the same as above through the GUI on our website: https://console.netspresso.ai/models<br/><br/>
 
 ## 5. Fine-tuning the compressed Model</br>
 Place the compressed model in the same place as the files obtained in Step 3('model_torchfx.pt', 'model_head.pt'). Change the compressed model name to 'model_compressed.pt'.
 ```bash
-python train.py --data coco.yaml --epochs 300 --weights model_compressed.pt --batch-size 128 --netspresso
+#Single GPU
+python train.py --data coco.yaml --epochs 300 --weights model_compressed.pt --batch-size 128 --device 0 --netspresso
+
+#Multi GPU
+python -m torch.distributed.run --nproc_per_node 2 train.py --batch 64 --data coco.yaml --weights model_compressed.pt --device 0,1 --netspresso
 ```
 
 Now you can use the compressed model however you like! </br></br>
