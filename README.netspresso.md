@@ -81,7 +81,7 @@ Finally, you can compress the uploaded model with the desired options through th
 # Recommendation Compression
 COMPRESSED_MODEL_NAME = "test_l2norm"
 COMPRESSION_METHOD = CompressionMethod.PR_L2
-RECOMMENDATION_METHOD = RecommendationMethod.LAMP
+RECOMMENDATION_METHOD = RecommendationMethod.SLAMP
 RECOMMENDATION_RATIO = 0.6
 OUTPUT_PATH = "./compressed_yolov5.pt"
 compressed_model = compressor.recommendation_compression(
@@ -126,7 +126,7 @@ model = compressor.upload_model(
 # Recommendation Compression
 COMPRESSED_MODEL_NAME = "test_l2norm"
 COMPRESSION_METHOD = CompressionMethod.PR_L2
-RECOMMENDATION_METHOD = RecommendationMethod.LAMP
+RECOMMENDATION_METHOD = RecommendationMethod.SLAMP
 RECOMMENDATION_RATIO = 0.6
 OUTPUT_PATH = "./compressed_yolov5.pt"
 compressed_model = compressor.recommendation_compression(
