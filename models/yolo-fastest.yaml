@@ -1,0 +1,65 @@
+# parameters
+nc: 80  # number of classes
+depth_multiple: 1.0  # model depth multiple
+width_multiple: 1.0  # layer channel multiple
+
+# anchors
+anchors:
+  - [12,18, 37,49, 52,132]  # P4/16
+  - [115,73, 119,199, 242,238]  # P5/32
+
+# YOLOv3-tiny backbone
+backbone:
+  # [from, number, module, args]
+  [[-1, 1, ConvNormReLU6, [8, 3, 2, 1]],  # conv0
+   [-1, 1, ConvNormReLU6, [8, 1, 1, 0]],  # conv1_1
+   [-1, 1, GroupConvNormReLU6, [8, 3, 1, 1]], # conv1_3
+   [-1, 1, ConvNorm, [4, 1, 1, 0]],  # conv1_4
+   [-1, 1, ResBlock, [4, 8]],  # res1_1
+
+   [-1, 1, ConvNormReLU6, [24, 1, 1, 0]],  # conv1_8
+   [-1, 1, ConvNormReLU6, [24, 3, 2, 1]],  # conv1_9
+   [-1, 1, ConvNorm, [8, 1, 1, 0]],  # conv2_1
+   [-1, 2, ResBlock, [8, 32]],  # res2_1
+
+   [-1, 1, ConvNormReLU6, [32, 1, 1, 0]],  # conv2_2
+   [-1, 1, GroupConvNormReLU6, [32, 3, 2, 1]],  # conv2_3
+   [-1, 1, ConvNorm, [8, 1, 1, 0]],  # conv3_1
+   [-1, 2, ResBlock, [8, 48]],  # res3_1
+
+   [-1, 1, ConvNormReLU6, [48, 1, 1, 0]],  # conv3_2
+   [-1, 1, GroupConvNormReLU6, [48, 3, 1, 1]],  # conv3_3
+   [-1, 1, ConvNorm, [16, 1, 1, 0]],  # conv3_4
+   [-1, 4, ResBlock, [16, 96]],  # res3_3 ~ 3_6
+
+   [-1, 1, ConvNormReLU6, [96, 1, 1, 0]],  # conv3_5
+   [-1, 1, GroupConvNormReLU6, [96, 3, 2, 1]],  # conv3_6
+   [-1, 1, ConvNorm, [24, 1, 1, 0]],  # conv4_1
+   [-1, 4, ResBlock, [24, 136]],  # res4_1 ~ 4_4
+
+   [-1, 1, ConvNormReLU6, [136, 1, 1, 0]],  # conv4_2
+   [-1, 1, GroupConvNormReLU6, [136, 3, 2, 1]],  # conv4_3
+   [-1, 1, ConvNormReLU6, [48, 1, 1, 0]],  # conv5_1
+   [-1, 5, ResBlock, [48, 224]],  # res5_1 ~ res5_5
+  ]
+
+# YOLOv3-tiny head
+head:
+  [[-1, 1, ConvNormReLU6, [96, 1, 1]],
+   [-1, 1, GroupConvNormReLU6, [96, 5, 1]],
+   [-1, 1, ConvNorm, [128, 1, 1]],
+   [-1, 1, GroupConvNormReLU6, [128, 5, 1]],
+   [-1, 1, ConvNorm, [128, 1, 1]],
+   [-1, 1, ConvStandalone, ['no', 1, 1, 0]],
+  
+   [-6, 1, ConvUpsample, [96, 1, 1, 0]],
+   [[-1, 20], 1, Concat, [1]],
+   [-1, 1, ConvNormReLU6, [96, 1, 1]],
+   [-1, 1, GroupConvNormReLU6, [96, 5, 1]],
+   [-1, 1, ConvNorm, [96, 1, 1]],
+   [-1, 1, GroupConvNormReLU6, [96, 5, 1]],
+   [-1, 1, ConvNorm, [96, 1, 1]],
+   [-1, 1, ConvStandalone, ['no', 1, 1, 0]],
+
+   [[-1, -9], 1, Detect_infer, [nc, anchors]],  # Detect(P4, P5)
+  ]
