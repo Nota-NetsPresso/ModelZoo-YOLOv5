@@ -24,7 +24,7 @@ You can sign up here: https://netspresso.ai/signup
 ## 1. Install
 Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a
 [**Python>=3.7.0**](https://www.python.org/) environment, including
-[**PyTorch>=1.11**](https://pytorch.org/get-started/locally/).
+[**PyTorch >= 1.11, < 2.0**](https://pytorch.org/get-started/locally/).
 
 ```bash
 git clone https://github.com/Nota-NetsPresso/yolov5_nota.git  # clone
