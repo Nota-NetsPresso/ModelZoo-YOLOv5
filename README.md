@@ -6,7 +6,7 @@
 
 </div>
 
-# <div align="center">NetsPresso tutorial for YOLOv5 compressrion</div>
+# <div align="center">NetsPresso tutorial for YOLOv5 compression</div>
 ## Order of the tutorial
 [0. Sign up](#0-sign-up) </br>
 [1. Install](#1-install) </br>
@@ -101,7 +101,7 @@ compressed_model = compressor.recommendation_compression(
 ```
 
 <details>
-<summary>Click to check 'Full upload & compress Code'</summary>
+<summary>Click to check 'Full upload & compress code'</summary>
 
 ```bash
 pip install netspresso
