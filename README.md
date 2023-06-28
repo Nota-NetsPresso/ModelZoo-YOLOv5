@@ -78,7 +78,7 @@ model = compressor.upload_model(
     task=TASK,
     framework=FRAMEWORK,
     file_path=UPLOAD_MODEL_PATH,
-    input_layers=INPUT_SHAPES,
+    input_shapes=INPUT_SHAPES,
 )
 ```
 Finally, you can compress the uploaded model with the desired options through the following code.
@@ -88,7 +88,7 @@ COMPRESSED_MODEL_NAME = "test_l2norm"
 COMPRESSION_METHOD = CompressionMethod.PR_L2
 RECOMMENDATION_METHOD = RecommendationMethod.SLAMP
 RECOMMENDATION_RATIO = 0.6
-OUTPUT_PATH = "./compressed_yolov5.pt"
+OUTPUT_PATH = "./model_compressed.pt"
 compressed_model = compressor.recommendation_compression(
     model_id=model.model_id,
     model_name=COMPRESSED_MODEL_NAME,
