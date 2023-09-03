@@ -1,4 +1,6 @@
+import os
 import argparse
+import shutil
 
 import torch
 import torch.fx as fx
@@ -7,6 +9,7 @@ from loguru import logger
 from netspresso.compressor import ModelCompressor, Task, Framework
 
 import train
+from export import run
 
 
 def parse_args():
@@ -69,11 +72,18 @@ def parse_args():
     parser.add_argument('--bbox_interval', type=int, default=-1, help='Set bounding-box image logging interval')
     parser.add_argument('--artifact_alias', type=str, default='latest', help='Version of dataset artifact to use')
 
+    """
+        Export arguments
+    """
+    parser.add_argument('--export_half', action='store_true', default=True, help='Entity')
+
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     args = parse_args()
+    if args.export_half:
+        assert args.device != 'cpu', "Cannot export model to fp16 onnx with cpu mode!!"
 
     """ 
         Convert YOLOX model to fx 
@@ -156,6 +166,27 @@ if __name__ == '__main__':
     torch.save(head, head_path)
 
     run_input = {'netspresso': True, 'weights': backbone_path, **args.__dict__}
-    train.run(**run_input)
+    train_opt = train.run(**run_input)
 
     logger.info("Fine-tuning step end.")
+
+    """ 
+        Export PIDNet model to onnx
+    """
+    logger.info("Export model to onnx format step start.")
+    
+    onnx_save_path = run(
+        weights=os.path.join(train_opt.save_dir, 'weights', 'best.pt'),  # weights path
+        imgsz=(args.imgsz, args.imgsz),  # image (height, width)
+        batch_size=1,  # batch size
+        device=args.device,  # cuda device, i.e. 0 or 0,1,2,3 or cpu
+        include=('onnx',),  # include formats
+        half=args.export_half,  # FP16 half-precision export
+    )
+
+    file_name = onnx_save_path[0].split('/')[-1]
+    shutil.move(onnx_save_path[0], COMPRESSED_MODEL_NAME + '.onnx')
+    
+    logger.info(f'=> saving model to {COMPRESSED_MODEL_NAME}.onnx')
+
+    logger.info("Export model to onnx format step end.")
