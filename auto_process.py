@@ -17,7 +17,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
 
     """
-        Compression arguments
+        Common arguments
     """
     parser.add_argument('-n', '--name', type=str)
 
@@ -87,7 +87,7 @@ if __name__ == '__main__':
         assert args.device != 'cpu', "Cannot export model to fp16 onnx with cpu mode!!"
 
     """ 
-        Convert YOLOX model to fx 
+        Convert YOLOv5 model to fx 
     """
     logger.info("yolov5 to fx graph start.")
 
@@ -181,7 +181,7 @@ if __name__ == '__main__':
     logger.info("Fine-tuning step end.")
 
     """ 
-        Export PIDNet model to onnx
+        Export YOLOv5 model to onnx
     """
     logger.info("Export model to onnx format step start.")
     
