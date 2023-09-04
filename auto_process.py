@@ -2,6 +2,7 @@ import os
 import argparse
 import shutil
 
+import yaml
 import torch
 import torch.fx as fx
 from loguru import logger
@@ -165,9 +166,18 @@ if __name__ == '__main__':
     head_path = '.'.join(OUTPUT_PATH.split('.')[:-1]) + '_head.pt'
     torch.save(head, head_path)
 
+    with open(args.hyp) as f:
+        hyp = yaml.safe_load(f)
+        hyp['lr0'] *= 0.1
+    
+    with open('tmp_hyp.yaml', 'w') as f:
+        yaml.safe_dump(hyp, f)
+    args.hyp = 'tmp_hyp.yaml'
+
     run_input = {'netspresso': True, 'weights': backbone_path, **args.__dict__}
     train_opt = train.run(**run_input)
 
+    os.remove(args.hyp)
     logger.info("Fine-tuning step end.")
 
     """ 
