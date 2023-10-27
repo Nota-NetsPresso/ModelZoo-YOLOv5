@@ -105,8 +105,8 @@ class Detect_infer(nn.Module):
         self.nl = len(anchors)  # number of detection layers
         self.na = len(anchors[0]) // 2  # number of anchors
         self.grid = [torch.empty(0) for _ in range(self.nl)]  # init grid
-        self.anchor_grid = [torch.empty(0) for _ in range(self.nl)]  # init anchor grid
         self.register_buffer('anchors', torch.tensor(anchors).float().view(self.nl, -1, 2))  # shape(nl,na,2)
+        self.register_buffer('anchor_grid', torch.tensor(anchors).float().view(self.nl, 1, -1, 1, 1, 2))  # shape(nl,1,na,1,1,2)
         self.inplace = inplace  # use inplace ops (e.g. slice assignment)
 
     def forward(self, x):
