@@ -22,6 +22,7 @@ import random
 import subprocess
 import sys
 import time
+import json
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
@@ -417,6 +418,27 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
                     torch.save(ckpt, w / f'epoch{epoch}.pt')
                 del ckpt
                 callbacks.run('on_model_save', last, epoch, final_epoch, best_fitness, fi)
+
+
+                model = deepcopy(de_parallel(model.train())) 
+                model.model[-1].training = True  # activate training on detect layer
+
+                nc = model.model[-1].nc
+                nl = model.model[-1].nl
+                na = model.model[-1].na
+                stride = model.model[-1].stride.cpu().numpy().tolist()
+                anchors = torch.squeeze(deepcopy(model.model[-1].anchor_grid[:])).detach().cpu().numpy().tolist()
+
+                model_info_for_nptk = {
+                    'nc': nc,
+                    'nl': nl,
+                    'na': na,
+                    'stride': stride,
+                    'anchors': anchors
+                }
+                
+                with open(save_dir + 'anchors.json', "w") as json_file:
+                    json.dump(model_info_for_nptk, json_file)
 
         # EarlyStopping
         if RANK != -1:  # if DDP training

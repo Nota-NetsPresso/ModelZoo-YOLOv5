@@ -46,6 +46,7 @@ from utils.metrics import ConfusionMatrix, ap_per_class, box_iou
 from utils.plots import output_to_target, plot_images, plot_val_study
 from utils.torch_utils import select_device, smart_inference_mode
 
+from models.yolo import Detect_tflite
 
 def save_one_txt(predn, save_conf, shape, file):
     # Save one txt result
@@ -128,6 +129,7 @@ def run(
 ):
     # Initialize/load model and set device
     training = model is not None
+    detect_yolo_fastest_tlfite = False
     if training:  # called by train.py
         device, pt, jit, engine = next(model.parameters()).device, True, False, False  # get model device, PyTorch model
         half &= device.type != 'cpu'  # half precision only supported on CUDA
@@ -140,8 +142,10 @@ def run(
         (save_dir / 'labels' if save_txt else save_dir).mkdir(parents=True, exist_ok=True)  # make dir
 
         # Load model
-        model = DetectMultiBackend(weights, device=device, dnn=dnn, data=data, fp16=half)
-        stride, pt, jit, engine = model.stride, model.pt, model.jit, model.engine
+        model = DetectMultiBackend(weights, device=device, dnn=dnn, data=data, fp16=half, fuse=False)
+        stride, pt, onnx, tflite, jit, engine = model.stride, model.pt, model.onnx, model.tflite, model.jit, model.engine
+        detect_yolo_fastest_tlfite = onnx or tflite
+
         imgsz = check_img_size(imgsz, s=stride)  # check image size
         half = model.fp16  # FP16 supported on limited backends with CUDA
         if engine:
@@ -208,7 +212,16 @@ def run(
         # Inference
         with dt[1]:
             preds, train_out = model(im) if compute_loss else (model(im, augment=augment), None)
-
+            if detect_yolo_fastest_tlfite:
+                with open('/ssd1/tairen.piao/ModelZoo-YOLOv5/anchor_yolo_fastest_uadetrac_128.json') as json_file:
+                    model_info = json.load(json_file)
+                nc, na, nl = model_info['nc'], model_info['na'], model_info['nl']
+                anchors = model_info['anchors']
+                stride = model_info['stride']
+                postprocess = Detect_tflite(nc=nc, na=na, nl=nl, anchors=anchors, stride=stride, inplace=True).to(device)
+                postprocess.training = False
+                preds = postprocess(preds)[0]
+        
         # Loss
         if compute_loss:
             loss += compute_loss(train_out, targets)[1]  # box, obj, cls
