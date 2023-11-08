@@ -254,7 +254,10 @@ class DetectionModel(BaseModel):
         self.info()
         LOGGER.info('')
 
-    def forward(self, x, augment=False, profile=False, visualize=False):
+    def forward(self, x):#, augment=False, profile=False, visualize=False):
+        augment = False
+        profile = False
+        visualize = False
         if augment:
             return self._forward_augment(x)  # augmented inference, None
         return self._forward_once(x, profile, visualize)  # single-scale inference, train

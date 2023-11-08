@@ -171,7 +171,7 @@ def export_netspresso(model, file, prefix=colorstr('NetsPresso:')):
         model.model[-1].export = False
         model_head = model.model[-1]
         
-        _graph = fx.Tracer().trace(model, {'augment': False, 'profile':False, 'visualize':False})
+        _graph = fx.Tracer().trace(model)
         traced_model = fx.GraphModule(model, _graph)
         torch.save(traced_model, f)
     
