@@ -105,7 +105,7 @@ if __name__ == '__main__':
         model.model[-1].export = False
         model_head = model.model[-1]
         
-        _graph = fx.Tracer().trace(model, {'augment': False, 'profile':False, 'visualize':False})
+        _graph = fx.Tracer().trace(model)
         model = fx.GraphModule(model, _graph)
 
     model.float()
